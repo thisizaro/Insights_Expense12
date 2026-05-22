@@ -302,6 +302,8 @@ Answer the user's question concisely and insightfully. Use INR amounts with ₹ 
             answer = result["choices"][0]["message"]["content"]
             return jsonify({"answer": answer})
     except Exception as e:
+        import traceback
+        traceback.print_exc()          # prints full error to terminal/Render logs
         return jsonify({"error": str(e)}), 500
 
 if __name__ == "__main__":
