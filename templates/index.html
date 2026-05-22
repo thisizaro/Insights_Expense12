@@ -1,0 +1,1029 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ExpenseIQ — Expense Analytics</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,500;1,400&family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg:       #f7f5f2;
+    --surface:  #ffffff;
+    --surface2: #f2f0ed;
+    --border:   #e0dcd6;
+    --border2:  #ccc8c2;
+    --ink:      #1a1714;
+    --ink2:     #4a453f;
+    --ink3:     #8a8480;
+    --ink4:     #bab6b0;
+    --accent:   #1a1714;
+    --gold:     #9a7c4a;
+    --red:      #8c3030;
+    --green:    #2d6a4a;
+    --blue:     #2c4a7a;
+    --serif:    'Playfair Display', Georgia, serif;
+    --mono:     'IBM Plex Mono', 'Courier New', monospace;
+    --sans:     'IBM Plex Sans', system-ui, sans-serif;
+  }
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    background: var(--bg);
+    color: var(--ink);
+    font-family: var(--sans);
+    font-size: 13.5px;
+    line-height: 1.65;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+  }
+
+  /* ── HEADER ── */
+  header {
+    background: var(--ink);
+    padding: 0 36px;
+    height: 56px;
+    display: flex;
+    align-items: center;
+    gap: 24px;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    border-bottom: 1px solid #333;
+  }
+  .wordmark {
+    font-family: var(--serif);
+    font-size: 18px;
+    color: #f7f5f2;
+    letter-spacing: 0.5px;
+    font-weight: 400;
+  }
+  .wordmark span {
+    color: var(--gold);
+    font-style: italic;
+  }
+  .header-divider {
+    width: 1px;
+    height: 20px;
+    background: #444;
+  }
+  .header-meta {
+    font-family: var(--mono);
+    font-size: 10px;
+    color: #888;
+    letter-spacing: 0.5px;
+  }
+  .header-right {
+    margin-left: auto;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-family: var(--mono);
+    font-size: 10px;
+    color: #777;
+  }
+  .live-dot {
+    width: 5px; height: 5px;
+    border-radius: 50%;
+    background: #5a9;
+    animation: breathe 3s ease-in-out infinite;
+  }
+  @keyframes breathe {
+    0%,100% { opacity: 1; } 50% { opacity: 0.3; }
+  }
+
+  /* ── SHELL ── */
+  .shell { display: flex; flex: 1; }
+
+  /* ── SIDEBAR ── */
+  .sidebar {
+    width: 240px;
+    flex-shrink: 0;
+    background: var(--surface);
+    border-right: 1px solid var(--border);
+    padding: 28px 0 20px;
+    position: sticky;
+    top: 56px;
+    height: calc(100vh - 56px);
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+    gap: 1px;
+  }
+  .sidebar-label {
+    padding: 0 20px 10px;
+    font-family: var(--mono);
+    font-size: 9px;
+    letter-spacing: 2.5px;
+    text-transform: uppercase;
+    color: var(--ink4);
+    border-bottom: 1px solid var(--border);
+    margin-bottom: 8px;
+  }
+  .nav-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 8px 20px;
+    cursor: pointer;
+    color: var(--ink3);
+    font-size: 12.5px;
+    font-weight: 400;
+    transition: color 0.12s, background 0.12s;
+    border-left: 2px solid transparent;
+    user-select: none;
+    position: relative;
+  }
+  .nav-item:hover {
+    color: var(--ink);
+    background: var(--surface2);
+  }
+  .nav-item.active {
+    color: var(--ink);
+    background: var(--surface2);
+    border-left-color: var(--gold);
+    font-weight: 500;
+  }
+  .nav-num {
+    font-family: var(--mono);
+    font-size: 9px;
+    color: var(--ink4);
+    margin-left: auto;
+    flex-shrink: 0;
+  }
+
+  /* ── MAIN ── */
+  .main {
+    flex: 1;
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+  }
+
+  /* ── AI BAR ── */
+  .ai-bar {
+    background: var(--surface);
+    border-bottom: 1px solid var(--border);
+    padding: 14px 36px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    position: sticky;
+    top: 0;
+    z-index: 50;
+  }
+  .ai-tag {
+    font-family: var(--mono);
+    font-size: 9px;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    color: var(--gold);
+    white-space: nowrap;
+    padding: 4px 9px;
+    border: 1px solid #ddd0b0;
+    border-radius: 2px;
+    background: #fdf9f0;
+  }
+  .ai-input {
+    flex: 1;
+    background: var(--bg);
+    border: 1px solid var(--border2);
+    border-radius: 3px;
+    padding: 8px 14px;
+    font-family: var(--sans);
+    font-size: 13px;
+    color: var(--ink);
+    outline: none;
+    transition: border-color 0.15s;
+  }
+  .ai-input::placeholder { color: var(--ink4); }
+  .ai-input:focus { border-color: var(--gold); background: var(--surface); }
+  .ai-btn {
+    background: var(--ink);
+    color: #f7f5f2;
+    border: none;
+    border-radius: 3px;
+    padding: 8px 20px;
+    font-family: var(--sans);
+    font-size: 12px;
+    font-weight: 500;
+    letter-spacing: 0.3px;
+    cursor: pointer;
+    transition: background 0.15s;
+    white-space: nowrap;
+  }
+  .ai-btn:hover { background: #333; }
+  .ai-btn:disabled { background: var(--border2); cursor: not-allowed; }
+
+  /* ── QUICK QUESTIONS ── */
+  .quick-row {
+    padding: 10px 36px;
+    display: flex;
+    gap: 6px;
+    flex-wrap: wrap;
+    background: var(--surface);
+    border-bottom: 1px solid var(--border);
+  }
+  .quick-q {
+    background: none;
+    border: 1px solid var(--border2);
+    border-radius: 2px;
+    padding: 3px 10px;
+    font-family: var(--mono);
+    font-size: 10px;
+    color: var(--ink3);
+    cursor: pointer;
+    transition: all 0.12s;
+    letter-spacing: 0.2px;
+  }
+  .quick-q:hover {
+    border-color: var(--gold);
+    color: var(--gold);
+    background: #fdf9f0;
+  }
+
+  /* ── AI RESPONSE ── */
+  .ai-response {
+    margin: 20px 36px 0;
+    padding: 18px 22px;
+    background: #fdf9f0;
+    border: 1px solid #ddd0b0;
+    border-radius: 4px;
+    display: none;
+    animation: fadeUp 0.2s ease;
+  }
+  .ai-response.visible { display: block; }
+  .ai-response-header {
+    font-family: var(--mono);
+    font-size: 9px;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    color: var(--gold);
+    margin-bottom: 10px;
+  }
+  .ai-response-body {
+    font-size: 13.5px;
+    color: var(--ink2);
+    line-height: 1.75;
+    white-space: pre-wrap;
+    font-family: var(--sans);
+    font-weight: 300;
+  }
+
+  /* ── CONTENT ── */
+  .content {
+    padding: 32px 36px;
+    flex: 1;
+  }
+  .insight-panel { display: none; }
+  .insight-panel.active { display: block; animation: fadeUp 0.2s ease; }
+
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(6px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+
+  .panel-title {
+    font-family: var(--serif);
+    font-size: 26px;
+    font-weight: 400;
+    color: var(--ink);
+    margin-bottom: 3px;
+    letter-spacing: -0.3px;
+  }
+  .panel-subtitle {
+    font-family: var(--mono);
+    font-size: 10px;
+    color: var(--ink4);
+    letter-spacing: 0.5px;
+    margin-bottom: 28px;
+    text-transform: uppercase;
+  }
+
+  /* ── STAT CARDS ── */
+  .stat-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(190px, 1fr));
+    gap: 1px;
+    background: var(--border);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    overflow: hidden;
+    margin-bottom: 28px;
+  }
+  .stat-card {
+    background: var(--surface);
+    padding: 20px 22px;
+  }
+  .stat-label {
+    font-family: var(--mono);
+    font-size: 9px;
+    text-transform: uppercase;
+    letter-spacing: 1.5px;
+    color: var(--ink4);
+    margin-bottom: 10px;
+  }
+  .stat-value {
+    font-family: var(--serif);
+    font-size: 30px;
+    font-weight: 400;
+    color: var(--ink);
+    line-height: 1;
+    letter-spacing: -0.5px;
+  }
+  .stat-value.gold { color: var(--gold); }
+  .stat-value.red  { color: var(--red); }
+  .stat-value.green { color: var(--green); }
+  .stat-meta {
+    font-family: var(--mono);
+    font-size: 10px;
+    color: var(--ink4);
+    margin-top: 5px;
+  }
+
+  /* ── TABLE ── */
+  .table-wrap {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    overflow: hidden;
+    margin-bottom: 20px;
+  }
+  .table-header {
+    padding: 12px 18px;
+    border-bottom: 1px solid var(--border);
+    font-family: var(--mono);
+    font-size: 9px;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    color: var(--ink4);
+    background: var(--surface2);
+  }
+  table { width: 100%; border-collapse: collapse; }
+  th {
+    background: var(--surface2);
+    padding: 9px 16px;
+    text-align: left;
+    font-family: var(--mono);
+    font-size: 9px;
+    text-transform: uppercase;
+    letter-spacing: 1.5px;
+    color: var(--ink3);
+    border-bottom: 1px solid var(--border);
+    white-space: nowrap;
+    font-weight: 500;
+  }
+  td {
+    padding: 9px 16px;
+    font-size: 12.5px;
+    border-bottom: 1px solid var(--border);
+    color: var(--ink2);
+    max-width: 240px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  tr:last-child td { border-bottom: none; }
+  tr:hover td { background: var(--surface2); }
+
+  /* ── BAR CHART ── */
+  .bar-chart { display: flex; flex-direction: column; gap: 9px; margin: 4px 0 8px; }
+  .bar-row { display: grid; grid-template-columns: 150px 1fr 90px; align-items: center; gap: 14px; }
+  .bar-label {
+    font-size: 11.5px;
+    color: var(--ink3);
+    text-align: right;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    font-family: var(--sans);
+  }
+  .bar-track {
+    background: var(--surface2);
+    border-radius: 2px;
+    height: 6px;
+    overflow: hidden;
+  }
+  .bar-fill {
+    height: 100%;
+    border-radius: 2px;
+    background: var(--ink);
+    transition: width 0.7s cubic-bezier(.22,1,.36,1);
+  }
+  .bar-fill.gold  { background: var(--gold); }
+  .bar-fill.blue  { background: var(--blue); }
+  .bar-fill.green { background: var(--green); }
+  .bar-val {
+    font-family: var(--mono);
+    font-size: 10.5px;
+    color: var(--ink3);
+  }
+
+  /* ── BADGE ── */
+  .badge {
+    display: inline-block;
+    padding: 2px 7px;
+    border-radius: 2px;
+    font-family: var(--mono);
+    font-size: 9px;
+    font-weight: 500;
+    letter-spacing: 0.5px;
+    text-transform: uppercase;
+  }
+  .badge-warn  { background: #f9eded; color: var(--red);   border: 1px solid #ddbaba; }
+  .badge-ok    { background: #edf5f0; color: var(--green); border: 1px solid #b0d4bc; }
+  .badge-info  { background: #edf1f9; color: var(--blue);  border: 1px solid #b0bedd; }
+
+  /* ── DONUT ── */
+  .donut-wrap { display: flex; align-items: center; gap: 36px; padding: 20px; }
+  .donut-legend { display: flex; flex-direction: column; gap: 10px; }
+  .legend-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 12px;
+    color: var(--ink3);
+  }
+  .legend-dot {
+    width: 8px; height: 8px;
+    border-radius: 50%;
+    flex-shrink: 0;
+  }
+
+  /* ── LOADING ── */
+  .loading {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 48px 36px;
+    color: var(--ink4);
+    font-family: var(--mono);
+    font-size: 11px;
+    letter-spacing: 1px;
+  }
+  .spinner {
+    width: 14px; height: 14px;
+    border: 1.5px solid var(--border2);
+    border-top-color: var(--gold);
+    border-radius: 50%;
+    animation: spin 0.8s linear infinite;
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  /* ── LAYOUT HELPERS ── */
+  .two-col {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 20px;
+  }
+  @media (max-width: 960px) { .two-col { grid-template-columns: 1fr; } }
+
+  .inr   { font-family: var(--mono); color: var(--ink2); }
+  .pct   { font-family: var(--mono); color: var(--green); font-size: 12px; }
+  .muted { color: var(--ink4); }
+
+  /* ── SCROLLBAR ── */
+  ::-webkit-scrollbar { width: 4px; height: 4px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+  ::-webkit-scrollbar-thumb { background: var(--border2); border-radius: 4px; }
+</style>
+</head>
+<body>
+
+<!-- HEADER -->
+<header>
+  <div class="wordmark">Expense<span>IQ</span></div>
+  <div class="header-divider"></div>
+  <div class="header-meta">Analytics Dashboard</div>
+  <div class="header-right">
+    <div class="live-dot"></div>
+    14,931 records &nbsp;·&nbsp; LLM-powered
+  </div>
+</header>
+
+<div class="shell">
+
+  <!-- SIDEBAR -->
+  <nav class="sidebar">
+    <div class="sidebar-label">Insights</div>
+    {% for card in cards %}
+    <div class="nav-item {% if loop.first %}active{% endif %}"
+         onclick="loadInsight('{{ card.key }}', this)">
+      <span>{{ card.label }}</span>
+      <span class="nav-num">{{ '%02d' % loop.index }}</span>
+    </div>
+    {% endfor %}
+  </nav>
+
+  <!-- MAIN -->
+  <div class="main">
+
+    <!-- AI BAR -->
+    <div class="ai-bar">
+      <div class="ai-tag">AI Query</div>
+      <input class="ai-input" id="aiInput" type="text"
+             placeholder="Ask a question about your expense data…"
+             onkeydown="if(event.key==='Enter') askAI()">
+      <button class="ai-btn" id="aiBtn" onclick="askAI()">Analyse</button>
+    </div>
+
+    <!-- Quick questions -->
+    <div class="quick-row">
+      {% for q in [
+        "Which department overspends most?",
+        "How many transactions lack receipts?",
+        "What are the biggest data quality issues?",
+        "Which vendor appears most frequently?",
+        "What percentage of spend is personal?"
+      ] %}
+      <button class="quick-q" onclick="setQuestion('{{ q }}')">{{ q }}</button>
+      {% endfor %}
+    </div>
+
+    <!-- AI Response -->
+    <div class="ai-response" id="aiResponse">
+      <div class="ai-response-header">AI Analysis</div>
+      <div class="ai-response-body" id="aiResponseBody"></div>
+    </div>
+
+    <!-- Content panels -->
+    <div class="content" id="contentArea">
+      <div class="loading"><div class="spinner"></div>Loading…</div>
+    </div>
+
+  </div>
+</div>
+
+<script>
+const PALETTE = ['#9a7c4a','#2c4a7a','#2d6a4a','#8c3030','#5c5040','#3a5c7a','#4a6a3a','#7a3a5c','#4a4a8c','#6a5c2c'];
+
+function fmt_inr(n) {
+  if (n == null) return '—';
+  const abs = Math.abs(n);
+  let s;
+  if      (abs >= 1e9) s = '₹' + (n/1e9).toFixed(2) + 'B';
+  else if (abs >= 1e7) s = '₹' + (n/1e7).toFixed(2) + 'Cr';
+  else if (abs >= 1e5) s = '₹' + (n/1e5).toFixed(1) + 'L';
+  else s = '₹' + n.toLocaleString('en-IN', {maximumFractionDigits:0});
+  return s;
+}
+
+function fmt_num(n) {
+  if (n == null) return '—';
+  return Number(n).toLocaleString('en-IN', {maximumFractionDigits:1});
+}
+
+function badge(text, type) {
+  return `<span class="badge badge-${type}">${text||'—'}</span>`;
+}
+
+function barChart(items, labelKey, valueKey, colorClass='') {
+  if (!items || !items.length) return '<p class="muted" style="font-size:12px;padding:4px 0">No data</p>';
+  const max = Math.max(...items.map(i => Math.abs(i[valueKey]||0)));
+  return '<div class="bar-chart">' + items.map(item => {
+    const pct = max ? (Math.abs(item[valueKey]||0)/max*100).toFixed(1) : 0;
+    return `<div class="bar-row">
+      <div class="bar-label" title="${item[labelKey]}">${item[labelKey]||'—'}</div>
+      <div class="bar-track"><div class="bar-fill ${colorClass}" style="width:${pct}%"></div></div>
+      <div class="bar-val">${fmt_inr(item[valueKey])}</div>
+    </div>`;
+  }).join('') + '</div>';
+}
+
+function table(rows, cols) {
+  if (!rows || !rows.length) return '<p class="muted" style="font-size:12px;padding:16px">No records found</p>';
+  return `<table>
+    <thead><tr>${cols.map(c=>`<th>${c.label||c.key}</th>`).join('')}</tr></thead>
+    <tbody>${rows.map(r=>`<tr>${cols.map(c => {
+      let v = r[c.key];
+      if      (c.type==='inr')      v = `<span class="inr">${fmt_inr(v)}</span>`;
+      else if (c.type==='pct')      v = `<span class="pct">${v!=null?v+'%':'—'}</span>`;
+      else if (c.type==='badge_sev') {
+        const t = v==='CRITICAL'?'warn':v==='WARNING'?'info':'ok';
+        v = badge(v, t);
+      }
+      else if (v==null||v==='nan'||v==='NaT'||v===undefined)
+        v = `<span class="muted">—</span>`;
+      return `<td title="${r[c.key]??''}">${v??'—'}</td>`;
+    }).join('')}</tr>`).join('')}</tbody>
+  </table>`;
+}
+
+function donutSVG(segments, size=140) {
+  let html = `<svg width="${size}" height="${size}" viewBox="0 0 ${size} ${size}">`;
+  const cx=size/2, cy=size/2, r=size*0.36, ri=size*0.22;
+  const total = segments.reduce((a,s)=>a+s.value,0);
+  let angle = -Math.PI/2;
+  segments.forEach(seg => {
+    const sweep = (seg.value/total)*2*Math.PI;
+    const x1=cx+r*Math.cos(angle), y1=cy+r*Math.sin(angle);
+    const x2=cx+r*Math.cos(angle+sweep), y2=cy+r*Math.sin(angle+sweep);
+    const xi1=cx+ri*Math.cos(angle), yi1=cy+ri*Math.sin(angle);
+    const xi2=cx+ri*Math.cos(angle+sweep), yi2=cy+ri*Math.sin(angle+sweep);
+    const large = sweep>Math.PI?1:0;
+    html += `<path d="M${x1} ${y1} A${r} ${r} 0 ${large} 1 ${x2} ${y2} L${xi2} ${yi2} A${ri} ${ri} 0 ${large} 0 ${xi1} ${yi1} Z" fill="${seg.color}"/>`;
+    angle += sweep;
+  });
+  html += '</svg>';
+  return html;
+}
+
+// ── Renderers ──────────────────────────────────────────────────────────────
+const renderers = {
+
+  overview(data) {
+    return `
+      <div class="stat-grid">
+        <div class="stat-card">
+          <div class="stat-label">Total Transactions</div>
+          <div class="stat-value">${fmt_num(data.total_transactions)}</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-label">Total Spend</div>
+          <div class="stat-value gold" style="font-size:24px">${fmt_inr(data.total_spend_inr)}</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-label">Flagged Transactions</div>
+          <div class="stat-value red">${fmt_num(data.flagged_transactions)}</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-label">Personal Expenses</div>
+          <div class="stat-value">${fmt_num(data.personal_expenses)}</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-label">Data Quality Load Rate</div>
+          <div class="stat-value green">${data.data_quality_score}%</div>
+          <div class="stat-meta">rows loaded from source</div>
+        </div>
+      </div>
+      <div class="table-wrap">
+        <div class="table-header">Approval Status</div>
+        ${table(
+          Object.entries(data.approval_breakdown||{}).map(([k,v])=>({status:k,count:v})),
+          [{key:'status',label:'Status'},{key:'count',label:'Count'}]
+        )}
+      </div>`;
+  },
+
+  spend_by_dept(data) {
+    return `<div class="two-col">
+      <div class="table-wrap">
+        <div class="table-header">Department Ranking</div>
+        ${table(data, [
+          {key:'department',label:'Department'},
+          {key:'total_inr',label:'Total Spend',type:'inr'},
+          {key:'tx_count',label:'Transactions'},
+          {key:'avg_inr',label:'Avg per Txn',type:'inr'},
+        ])}
+      </div>
+      <div class="table-wrap">
+        <div class="table-header">Relative Spend</div>
+        <div style="padding:18px">${barChart(data.slice(0,12), 'department', 'total_inr', 'gold')}</div>
+      </div>
+    </div>`;
+  },
+
+  spend_by_category(data) {
+    const segs = data.slice(0,6).map((d,i)=>({label:d.category,value:Math.abs(d.total_inr||0),color:PALETTE[i]}));
+    return `<div class="two-col">
+      <div class="table-wrap">
+        <div class="table-header">Category Totals</div>
+        ${table(data, [
+          {key:'category',label:'Category'},
+          {key:'total_inr',label:'Total Spend',type:'inr'},
+          {key:'tx_count',label:'Count'},
+          {key:'avg_inr',label:'Avg',type:'inr'},
+        ])}
+      </div>
+      <div>
+        <div class="table-wrap" style="margin-bottom:20px">
+          <div class="table-header">Distribution</div>
+          <div class="donut-wrap">
+            ${donutSVG(segs,160)}
+            <div class="donut-legend">
+              ${segs.map(s=>`<div class="legend-row"><div class="legend-dot" style="background:${s.color}"></div>${s.label}</div>`).join('')}
+            </div>
+          </div>
+        </div>
+        <div class="table-wrap">
+          <div class="table-header">Relative Spend</div>
+          <div style="padding:18px">${barChart(data, 'category', 'total_inr', 'blue')}</div>
+        </div>
+      </div>
+    </div>`;
+  },
+
+  top_vendors(data) {
+    return `<div class="two-col">
+      <div class="table-wrap">
+        <div class="table-header">Vendor Ranking</div>
+        ${table(data, [
+          {key:'vendor',label:'Vendor'},
+          {key:'total_inr',label:'Total Spend',type:'inr'},
+          {key:'tx_count',label:'Transactions'},
+        ])}
+      </div>
+      <div class="table-wrap">
+        <div class="table-header">Relative Spend</div>
+        <div style="padding:18px">${barChart(data.slice(0,12), 'vendor', 'total_inr', 'green')}</div>
+      </div>
+    </div>`;
+  },
+
+  currency(data) {
+    const segs = data.map((d,i)=>({label:d.currency,value:Math.abs(d.total_inr||0),color:PALETTE[i]}));
+    return `<div class="two-col">
+      <div class="table-wrap">
+        <div class="table-header">Currency Distribution</div>
+        ${table(data, [
+          {key:'currency',label:'Currency'},
+          {key:'total_inr',label:'Total (INR Equiv)',type:'inr'},
+          {key:'tx_count',label:'Transactions'},
+        ])}
+      </div>
+      <div class="table-wrap">
+        <div class="table-header">Share</div>
+        <div class="donut-wrap">
+          ${donutSVG(segs,160)}
+          <div class="donut-legend">
+            ${segs.map(s=>`<div class="legend-row"><div class="legend-dot" style="background:${s.color}"></div>${s.label}</div>`).join('')}
+          </div>
+        </div>
+      </div>
+    </div>`;
+  },
+
+  flagged(data) {
+    return `
+      <p style="font-size:12px;color:var(--ink3);margin-bottom:16px;font-family:var(--mono)">
+        ${data.length} flagged records — requires review for policy compliance
+      </p>
+      <div class="table-wrap">
+        <div class="table-header">Flagged Transaction Details</div>
+        ${table(data, [
+          {key:'txn_ref',label:'Reference'},
+          {key:'submission_date',label:'Date'},
+          {key:'amount_inr',label:'Amount',type:'inr'},
+          {key:'vendor_name',label:'Vendor'},
+          {key:'department',label:'Department'},
+          {key:'submitted_by',label:'Submitted By'},
+          {key:'description',label:'Description'},
+        ])}
+      </div>`;
+  },
+
+  personal(data) {
+    return `
+      <p style="font-size:12px;color:var(--ink3);margin-bottom:16px;font-family:var(--mono)">
+        ${data.length} personal expenses detected — may require reimbursement or clawback
+      </p>
+      <div class="table-wrap">
+        <div class="table-header">Personal Expense Records</div>
+        ${table(data, [
+          {key:'txn_ref',label:'Reference'},
+          {key:'submission_date',label:'Date'},
+          {key:'amount_inr',label:'Amount',type:'inr'},
+          {key:'vendor_name',label:'Vendor'},
+          {key:'department',label:'Department'},
+          {key:'submitted_by',label:'Submitted By'},
+          {key:'description',label:'Description'},
+        ])}
+      </div>`;
+  },
+
+  ai_confidence(data) {
+    const distRows = Object.entries(data.distribution||{}).map(([k,v])=>({bucket:k,count:v}));
+    const catRows  = Object.entries(data.category_avg_confidence||{}).map(([k,v])=>({category:k,confidence:(v*100).toFixed(1)+'%'}));
+    return `
+      <div class="stat-grid">
+        <div class="stat-card">
+          <div class="stat-label">Mean Confidence</div>
+          <div class="stat-value green">${(data.mean_confidence*100).toFixed(1)}%</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-label">Low Confidence (&lt;75%)</div>
+          <div class="stat-value red">${fmt_num(data.low_confidence_count)}</div>
+          <div class="stat-meta">${data.low_confidence_pct}% of all classifications</div>
+        </div>
+      </div>
+      <div class="two-col">
+        <div class="table-wrap">
+          <div class="table-header">Confidence Distribution</div>
+          ${table(distRows, [{key:'bucket',label:'Range'},{key:'count',label:'Count'}])}
+        </div>
+        <div class="table-wrap">
+          <div class="table-header">Average Confidence by Category</div>
+          ${table(catRows, [{key:'category',label:'Category'},{key:'confidence',label:'Avg Confidence'}])}
+        </div>
+      </div>`;
+  },
+
+  quality(data) {
+    const typeRows = Object.entries(data.issues_by_type||{}).sort((a,b)=>b[1]-a[1]).map(([k,v])=>({type:k,count:v}));
+    const sevRows  = Object.entries(data.issues_by_severity||{}).map(([k,v])=>({severity:k,count:v}));
+    return `
+      <div class="stat-grid">
+        <div class="stat-card">
+          <div class="stat-label">Source Rows</div>
+          <div class="stat-value">${fmt_num(data.total_rows_source)}</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-label">Rows Loaded</div>
+          <div class="stat-value green">${fmt_num(data.rows_loaded)}</div>
+          <div class="stat-meta">${data.load_rate_pct}% load rate</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-label">Rows Excluded</div>
+          <div class="stat-value red">${fmt_num(data.rows_excluded)}</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-label">Total Issues Logged</div>
+          <div class="stat-value">${fmt_num(data.total_issues)}</div>
+        </div>
+      </div>
+      <div class="two-col">
+        <div class="table-wrap">
+          <div class="table-header">Issues by Severity</div>
+          ${table(sevRows, [
+            {key:'severity',label:'Severity',type:'badge_sev'},
+            {key:'count',label:'Count'}
+          ])}
+        </div>
+        <div class="table-wrap">
+          <div class="table-header">Top Issue Types</div>
+          ${table(typeRows.slice(0,15), [{key:'type',label:'Issue Type'},{key:'count',label:'Count'}])}
+        </div>
+      </div>`;
+  },
+
+  monthly_trend(data) {
+    if (!data.length) return '<p class="muted">No date data available</p>';
+    const max = Math.max(...data.map(d=>d.total_inr||0));
+    const bars = data.map(d => {
+      const pct = max ? ((d.total_inr||0)/max*100) : 0;
+      return `<div style="display:flex;flex-direction:column;align-items:center;gap:4px;flex:1;min-width:24px">
+        <div style="font-family:var(--mono);font-size:8px;color:var(--ink4)">${fmt_inr(d.total_inr)}</div>
+        <div style="width:100%;background:var(--surface2);height:100px;display:flex;align-items:flex-end;border-radius:2px 2px 0 0">
+          <div style="width:100%;height:${pct}%;background:var(--gold);border-radius:2px 2px 0 0;transition:height 0.6s ease;opacity:0.85"></div>
+        </div>
+        <div style="font-family:var(--mono);font-size:8px;color:var(--ink4);writing-mode:vertical-lr;transform:rotate(180deg);height:42px;overflow:hidden">${d.month}</div>
+      </div>`;
+    }).join('');
+    return `
+      <div class="table-wrap" style="margin-bottom:20px">
+        <div class="table-header">Monthly Spend</div>
+        <div style="padding:20px;overflow-x:auto">
+          <div style="display:flex;gap:3px;align-items:flex-end;min-width:560px">${bars}</div>
+        </div>
+      </div>
+      <div class="table-wrap">
+        <div class="table-header">Monthly Data</div>
+        ${table(data, [
+          {key:'month',label:'Month'},
+          {key:'total_inr',label:'Total Spend',type:'inr'},
+          {key:'tx_count',label:'Transactions'},
+        ])}
+      </div>`;
+  },
+
+  receipt_compliance(data) {
+    return `
+      <div class="stat-grid">
+        <div class="stat-card">
+          <div class="stat-label">Overall Compliance</div>
+          <div class="stat-value green">${data.overall_compliance_pct}%</div>
+          <div class="stat-meta">receipts attached</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-label">With Receipt</div>
+          <div class="stat-value">${fmt_num(data.with_receipt)}</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-label">Without Receipt</div>
+          <div class="stat-value red">${fmt_num(data.without_receipt)}</div>
+        </div>
+      </div>
+      <div class="table-wrap">
+        <div class="table-header">Compliance by Department — Lowest First</div>
+        ${table(data.by_department||[], [
+          {key:'dept_clean',label:'Department'},
+          {key:'total',label:'Total'},
+          {key:'with_receipt',label:'With Receipt'},
+          {key:'compliance_pct',label:'Compliance',type:'pct'},
+        ])}
+      </div>`;
+  },
+
+  submitters(data) {
+    return `<div class="two-col">
+      <div class="table-wrap">
+        <div class="table-header">Top Submitters by Spend</div>
+        ${table(data, [
+          {key:'submitter',label:'Name'},
+          {key:'total_inr',label:'Total Spend',type:'inr'},
+          {key:'tx_count',label:'Transactions'},
+        ])}
+      </div>
+      <div class="table-wrap">
+        <div class="table-header">Relative Spend</div>
+        <div style="padding:18px">${barChart(data.slice(0,12), 'submitter', 'total_inr')}</div>
+      </div>
+    </div>`;
+  },
+
+  cost_centers(data) {
+    const deptRows = Object.entries(data.by_department||{}).map(([k,v])=>({dept:k,count:v}));
+    return `
+      <div class="stat-grid">
+        <div class="stat-card">
+          <div class="stat-label">Missing Cost Centers</div>
+          <div class="stat-value red">${fmt_num(data.total_missing)}</div>
+          <div class="stat-meta">${data.pct_missing}% of all transactions</div>
+        </div>
+      </div>
+      <div class="two-col">
+        <div class="table-wrap">
+          <div class="table-header">By Department</div>
+          ${table(deptRows, [{key:'dept',label:'Department'},{key:'count',label:'Missing CC'}])}
+        </div>
+        <div class="table-wrap">
+          <div class="table-header">Sample Records</div>
+          ${table(data.sample||[], [
+            {key:'txn_ref',label:'Reference'},
+            {key:'dept_clean',label:'Department'},
+            {key:'submitted_by',label:'Submitted By'},
+            {key:'amount_inr',label:'Amount',type:'inr'},
+          ])}
+        </div>
+      </div>`;
+  },
+};
+
+// ── Load insight ───────────────────────────────────────────────────────────
+async function loadInsight(key, navEl) {
+  document.querySelectorAll('.nav-item').forEach(e => e.classList.remove('active'));
+  navEl.classList.add('active');
+
+  const area = document.getElementById('contentArea');
+  area.innerHTML = '<div class="loading"><div class="spinner"></div>Loading insight…</div>';
+
+  try {
+    const res  = await fetch(`/api/insight/${key}`);
+    const json = await res.json();
+    const renderer = renderers[key];
+    const html = renderer
+      ? renderer(json.data)
+      : `<pre style="color:var(--ink3);font-size:11px">${JSON.stringify(json.data,null,2)}</pre>`;
+    area.innerHTML = `
+      <div class="insight-panel active">
+        <div class="panel-title">${json.label}</div>
+        <div class="panel-subtitle">cleaned_expenses · ai_classification · quality_report</div>
+        ${html}
+      </div>`;
+  } catch(e) {
+    area.innerHTML = `<div style="color:var(--red);padding:20px;font-family:var(--mono);font-size:12px">Error: ${e.message}</div>`;
+  }
+}
+
+// ── AI Query ───────────────────────────────────────────────────────────────
+async function askAI() {
+  const q = document.getElementById('aiInput').value.trim();
+  if (!q) return;
+  const btn  = document.getElementById('aiBtn');
+  const resp = document.getElementById('aiResponse');
+  const body = document.getElementById('aiResponseBody');
+  btn.disabled = true;
+  btn.textContent = 'Analysing…';
+  resp.classList.add('visible');
+  body.textContent = 'Processing your query…';
+
+  try {
+    const res  = await fetch('/api/ask', {
+      method: 'POST',
+      headers: {'Content-Type':'application/json'},
+      body: JSON.stringify({question: q})
+    });
+    const json = await res.json();
+    body.textContent = json.answer || json.error || 'No response received.';
+  } catch(e) {
+    body.textContent = 'Error: ' + e.message;
+  } finally {
+    btn.disabled = false;
+    btn.textContent = 'Analyse';
+  }
+}
+
+function setQuestion(q) {
+  document.getElementById('aiInput').value = q;
+  document.getElementById('aiInput').focus();
+}
+
+window.addEventListener('DOMContentLoaded', () => {
+  const first = document.querySelector('.nav-item.active');
+  if (first) loadInsight('overview', first);
+});
+</script>
+</body>
+</html>
