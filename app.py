@@ -281,6 +281,10 @@ Answer the user's question concisely and insightfully. Use INR amounts with ₹ 
     #         return jsonify({"answer": answer})
     # except Exception as e:
     #     return jsonify({"error": str(e)}), 500
+    if not os.environ.get("GROQ_API_KEY"):
+       return jsonify({"error": "GROQ_API_KEY not set"}), 500
+
+
     req = urllib.request.Request(
         "https://api.groq.com/openai/v1/chat/completions",
         data=json.dumps({
@@ -293,7 +297,7 @@ Answer the user's question concisely and insightfully. Use INR amounts with ₹ 
         }).encode(),
         headers={
             "Content-Type": "application/json",
-            "Authorization": os.environ.get("GROQ_API_KEY", "")
+            "Authorization": f"Bearer {os.environ.get('GROQ_API_KEY', '')}"  # 👈 fix
         }
     )
     try:
